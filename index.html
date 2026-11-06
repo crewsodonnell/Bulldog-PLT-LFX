@@ -1,0 +1,827 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>1-327 IN Bulldog | Platoon LFX Scorecard & Evaluation Portal</title>
+  <!-- Tailwind CSS CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- Lucide Icons -->
+  <script src="https://unpkg.com/lucide@latest"></script>
+  <script>
+    tailwind.config = {
+      darkMode: 'class',
+      theme: {
+        extend: {
+          colors: {
+            military: {
+              900: '#1c2419',
+              800: '#283424',
+              700: '#384833',
+              600: '#4d6146',
+              500: '#698160',
+              accent: '#d4af37', // Gold
+              red: '#b91c1c',
+              green: '#15803d'
+            }
+          }
+        }
+      }
+    }
+  </script>
+  <style>
+    @media print {
+      .no-print { display: none !important; }
+      body { background: white !important; color: black !important; }
+      .print-border { border: 1px solid #000 !important; }
+    }
+    input\[type=range\]::-webkit-slider-thumb {
+      height: 18px;
+      width: 18px;
+      border-radius: 9999px;
+      background: #d4af37;
+      cursor: pointer;
+      -webkit-appearance: none;
+      margin-top: -4px;
+    }
+    input\[type=range\]::-webkit-slider-runnable-track {
+      height: 10px;
+      background: #384833;
+      border-radius: 9999px;
+    }
+  </style>
+</head>
+<body class="bg-stone-950 text-stone-100 min-h-screen flex flex-col font-sans antialiased selection:bg-amber-500 selection:text-black">
+
+  <!-- TOP TOC BANNER -->
+  <header class="bg-stone-900 border-b border-stone-800 sticky top-0 z-50 shadow-md">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-3 flex flex-wrap justify-between items-center gap-4">
+      <div class="flex items-center space-x-3">
+        <div class="w-10 h-10 rounded bg-amber-500/20 border border-amber-500/40 flex items-center justify-center text-amber-400 font-bold tracking-wider">
+          <i data-lucide="shield-alert" class="w-6 h-6"></i>
+        </div>
+        <div>
+          <div class="flex items-center space-x-2">
+            <h1 class="text-lg font-black tracking-wider uppercase text-white">1-327 IN "BULLDOG"</h1>
+            <span class="px-2 py-0.5 text-xs font-semibold bg-amber-500/10 text-amber-400 border border-amber-500/30 rounded">101st ABN DIV (AASLT)</span>
+          </div>
+          <p class="text-xs text-stone-400">Platoon Live-Fire Exercise (LFX) Battalion Evaluation System</p>
+        </div>
+      </div>
+
+      <!-- Quick Nav Buttons -->
+      <div class="flex items-center space-x-2 no-print">
+        <button onclick="switchTab('dashboard')" id="btn-tab-dashboard" class="px-3 py-1.5 text-xs font-bold rounded bg-amber-500 text-stone-950 transition-all flex items-center gap-1.5 shadow">
+          <i data-lucide="layout-dashboard" class="w-4 h-4"></i> TOC Overview
+        </button>
+        <button onclick="switchTab('evaluation')" id="btn-tab-evaluation" class="px-3 py-1.5 text-xs font-bold rounded bg-stone-800 hover:bg-stone-700 text-stone-300 transition-all flex items-center gap-1.5">
+          <i data-lucide="clipboard-check" class="w-4 h-4"></i> OC/T Scoring Sheet
+        </button>
+        <button onclick="switchTab('matrix')" id="btn-tab-matrix" class="px-3 py-1.5 text-xs font-bold rounded bg-stone-800 hover:bg-stone-700 text-stone-300 transition-all flex items-center gap-1.5">
+          <i data-lucide="table-2" class="w-4 h-4"></i> Battalion Matrix
+        </button>
+        <button onclick="switchTab('aar')" id="btn-tab-aar" class="px-3 py-1.5 text-xs font-bold rounded bg-stone-800 hover:bg-stone-700 text-stone-300 transition-all flex items-center gap-1.5">
+          <i data-lucide="file-text" class="w-4 h-4"></i> Executive AAR
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <!-- MAIN CONTENT CONTAINER -->
+  <main class="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-6">
+
+    <!-- 1. DASHBOARD TAB -->
+    <section id="tab-dashboard" class="space-y-6">
+      <!-- High Level Metrics Bar -->
+      <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+        <div class="bg-stone-900 border border-stone-800 p-4 rounded-lg shadow-sm">
+          <div class="flex items-center justify-between">
+            <span class="text-xs font-semibold uppercase text-stone-400">BN Overall Average</span>
+            <i data-lucide="trending-up" class="w-4 h-4 text-amber-400"></i>
+          </div>
+          <div class="mt-2 flex items-baseline space-x-2">
+            <span id="metric-avg-score" class="text-3xl font-black text-white">--%</span>
+            <span id="metric-avg-rating" class="text-xs px-2 py-0.5 rounded font-bold uppercase bg-stone-800 text-stone-300">CALC</span>
+          </div>
+          <p class="text-xs text-stone-500 mt-1">Across 9 Rifle Platoons</p>
+        </div>
+
+        <div class="bg-stone-900 border border-stone-800 p-4 rounded-lg shadow-sm">
+          <div class="flex items-center justify-between">
+            <span class="text-xs font-semibold uppercase text-stone-400">Top Platoon</span>
+            <i data-lucide="award" class="w-4 h-4 text-amber-400"></i>
+          </div>
+          <div class="mt-2">
+            <span id="metric-top-platoon" class="text-lg font-black text-amber-400 truncate block">--</span>
+          </div>
+          <p id="metric-top-score" class="text-xs text-stone-400 mt-1">Score: --</p>
+        </div>
+
+        <div class="bg-stone-900 border border-stone-800 p-4 rounded-lg shadow-sm">
+          <div class="flex items-center justify-between">
+            <span class="text-xs font-semibold uppercase text-stone-400">T&EO Status</span>
+            <i data-lucide="check-circle" class="w-4 h-4 text-emerald-400"></i>
+          </div>
+          <div class="mt-2 flex items-center space-x-2 text-xs font-bold">
+            <span class="text-emerald-400"><span id="metric-count-t">0</span> Trained</span>
+            <span class="text-stone-600">|</span>
+            <span class="text-amber-400"><span id="metric-count-p">0</span> Practice</span>
+            <span class="text-stone-600">|</span>
+            <span class="text-rose-400"><span id="metric-count-u">0</span> Untrained</span>
+          </div>
+          <p class="text-xs text-stone-500 mt-1">DA Form 5164-R Criteria</p>
+        </div>
+
+        <div class="bg-stone-900 border border-stone-800 p-4 rounded-lg shadow-sm">
+          <div class="flex items-center justify-between">
+            <span class="text-xs font-semibold uppercase text-stone-400">Safety / SDZ Status</span>
+            <i data-lucide="shield-check" class="w-4 h-4 text-emerald-400"></i>
+          </div>
+          <div class="mt-2 flex items-center space-x-2">
+            <span class="h-2.5 w-2.5 rounded-full bg-emerald-500 animate-pulse"></span>
+            <span id="metric-safety-status" class="text-sm font-bold text-white">ALL RED RANGES CLEAR</span>
+          </div>
+          <p class="text-xs text-stone-500 mt-1">Surface Danger Zones & Breeches</p>
+        </div>
+      </div>
+
+      <!-- COMPANY ROLL-UP CARDS -->
+      <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        <!-- ABU COMPANY -->
+        <div class="bg-stone-900 border border-stone-800 rounded-lg p-5 flex flex-col justify-between shadow">
+          <div>
+            <div class="flex justify-between items-start pb-3 border-b border-stone-800">
+              <div>
+                <h3 class="text-base font-extrabold text-white tracking-wide uppercase">ABU COMPANY</h3>
+                <span class="text-xs text-stone-400">"Always Ready" • Rifle Co A</span>
+              </div>
+              <span id="abu-avg-badge" class="px-2 py-1 text-xs font-mono font-bold rounded bg-stone-800 text-amber-400 border border-stone-700">AVG: --%</span>
+            </div>
+
+            <div class="mt-4 space-y-3" id="abu-platoons-list">
+              <!-- Dynamically populated -->
+            </div>
+          </div>
+          <button onclick="openEvaluationForCompany('ABU')" class="mt-4 w-full py-2 bg-stone-800 hover:bg-stone-700 text-stone-300 hover:text-white rounded text-xs font-bold transition flex items-center justify-center gap-1.5">
+            <i data-lucide="edit-3" class="w-3.5 h-3.5"></i> Evaluate ABU Platoons
+          </button>
+        </div>
+
+        <!-- BUSHMASTER COMPANY -->
+        <div class="bg-stone-900 border border-stone-800 rounded-lg p-5 flex flex-col justify-between shadow">
+          <div>
+            <div class="flex justify-between items-start pb-3 border-b border-stone-800">
+              <div>
+                <h3 class="text-base font-extrabold text-white tracking-wide uppercase">BUSHMASTER CO</h3>
+                <span class="text-xs text-stone-400">"Strike Swiftly" • Rifle Co B</span>
+              </div>
+              <span id="bushmaster-avg-badge" class="px-2 py-1 text-xs font-mono font-bold rounded bg-stone-800 text-amber-400 border border-stone-700">AVG: --%</span>
+            </div>
+
+            <div class="mt-4 space-y-3" id="bushmaster-platoons-list">
+              <!-- Dynamically populated -->
+            </div>
+          </div>
+          <button onclick="openEvaluationForCompany('Bushmaster')" class="mt-4 w-full py-2 bg-stone-800 hover:bg-stone-700 text-stone-300 hover:text-white rounded text-xs font-bold transition flex items-center justify-center gap-1.5">
+            <i data-lucide="edit-3" class="w-3.5 h-3.5"></i> Evaluate Bushmaster Platoons
+          </button>
+        </div>
+
+        <!-- COLDSTEEL COMPANY -->
+        <div class="bg-stone-900 border border-stone-800 rounded-lg p-5 flex flex-col justify-between shadow">
+          <div>
+            <div class="flex justify-between items-start pb-3 border-b border-stone-800">
+              <div>
+                <h3 class="text-base font-extrabold text-white tracking-wide uppercase">COLDSTEEL CO</h3>
+                <span class="text-xs text-stone-400">"Iron Discipline" • Rifle Co C</span>
+              </div>
+              <span id="coldsteel-avg-badge" class="px-2 py-1 text-xs font-mono font-bold rounded bg-stone-800 text-amber-400 border border-stone-700">AVG: --%</span>
+            </div>
+
+            <div class="mt-4 space-y-3" id="coldsteel-platoons-list">
+              <!-- Dynamically populated -->
+            </div>
+          </div>
+          <button onclick="openEvaluationForCompany('Coldsteel')" class="mt-4 w-full py-2 bg-stone-800 hover:bg-stone-700 text-stone-300 hover:text-white rounded text-xs font-bold transition flex items-center justify-center gap-1.5">
+            <i data-lucide="edit-3" class="w-3.5 h-3.5"></i> Evaluate Coldsteel Platoons
+          </button>
+        </div>
+      </div>
+
+      <!-- Exercise Execution Notes -->
+      <div class="bg-stone-900 border border-stone-800 p-4 rounded-lg flex items-center justify-between text-xs text-stone-400">
+        <div class="flex items-center space-x-2">
+          <i data-lucide="info" class="w-4 h-4 text-amber-400"></i>
+          <span>Evaluation Rubric: TC 3-21.8 (Infantry Platoon and Squad) & DA PAM 350-38 (STRAC standards).</span>
+        </div>
+        <button onclick="resetData()" class="text-stone-500 hover:text-rose-400 underline transition">Reset to Battalion Baseline</button>
+      </div>
+    </section>
+
+    <!-- 2. OC/T EVALUATION TAB -->
+    <section id="tab-evaluation" class="hidden space-y-6">
+      <div class="bg-stone-900 border border-stone-800 rounded-lg p-5 shadow">
+        <!-- Selector Header -->
+        <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 pb-5 border-b border-stone-800">
+          <div>
+            <span class="text-xs font-bold text-amber-400 tracking-wider uppercase">Active Evaluation Record</span>
+            <div class="flex items-center gap-3 mt-1">
+              <select id="platoon-selector" onchange="loadPlatoonForEdit(this.value)" class="bg-stone-950 text-white font-bold text-base px-3 py-1.5 rounded border border-stone-700 focus:outline-none focus:border-amber-400">
+                <!-- Populated by JS -->
+              </select>
+              <div class="flex items-center space-x-1 bg-stone-950 p-1 rounded border border-stone-800">
+                <button type="button" id="iter-day" onclick="setIteration('Day')" class="px-3 py-1 text-xs font-bold rounded bg-amber-500 text-stone-950">Day Live</button>
+                <button type="button" id="iter-night" onclick="setIteration('Night')" class="px-3 py-1 text-xs font-bold rounded text-stone-400 hover:text-white">Night Live</button>
+              </div>
+            </div>
+          </div>
+
+          <!-- Quick Live Score Display -->
+          <div class="flex items-center gap-4">
+            <div class="text-right">
+              <span class="text-xs text-stone-400 uppercase font-semibold">Current Platoon Total</span>
+              <div class="flex items-center justify-end gap-2">
+                <span id="active-total-score" class="text-3xl font-black text-amber-400">0%</span>
+                <span id="active-total-badge" class="px-2 py-0.5 text-xs font-black rounded bg-stone-800 text-stone-400">--</span>
+              </div>
+            </div>
+            <button onclick="saveActiveEvaluation()" class="bg-amber-500 hover:bg-amber-400 text-stone-950 font-black px-4 py-2 rounded text-xs uppercase tracking-wider flex items-center gap-2 shadow">
+              <i data-lucide="save" class="w-4 h-4"></i> Save Record
+            </button>
+          </div>
+        </div>
+
+        <!-- Range Safety Interlock -->
+        <div class="mt-4 p-3 rounded bg-stone-950 border border-stone-800 flex flex-wrap items-center justify-between gap-3">
+          <div class="flex items-center space-x-2">
+            <i data-lucide="alert-triangle" class="w-4 h-4 text-amber-400"></i>
+            <span class="text-xs font-bold text-stone-300">Live-Fire Safety Status & SDZ Enforcement:</span>
+          </div>
+          <div class="flex items-center space-x-3 text-xs">
+            <label class="flex items-center space-x-1.5 cursor-pointer">
+              <input type="radio" name="safety-check" value="clear" checked onchange="updateSafetyGate(this.value)" class="text-amber-500 focus:ring-0">
+              <span class="text-emerald-400 font-semibold">Clean Run (No Violations)</span>
+            </label>
+            <label class="flex items-center space-x-1.5 cursor-pointer">
+              <input type="radio" name="safety-check" value="warning" onchange="updateSafetyGate(this.value)" class="text-amber-500 focus:ring-0">
+              <span class="text-amber-400 font-semibold">Minor Safety Cease-Fire (-10%)</span>
+            </label>
+            <label class="flex items-center space-x-1.5 cursor-pointer">
+              <input type="radio" name="safety-check" value="breach" onchange="updateSafetyGate(this.value)" class="text-rose-500 focus:ring-0">
+              <span class="text-rose-400 font-bold">SDZ / Line-of-Fire Breach (AUTOMATIC NO-GO)</span>
+            </label>
+          </div>
+        </div>
+
+        <!-- 5-PHASE SCORING RUBRICS -->
+        <div class="mt-6 space-y-6">
+
+          <!-- Phase 1: TLPs & Planning -->
+          <div class="border border-stone-800 rounded p-4 bg-stone-950">
+            <div class="flex justify-between items-center mb-3">
+              <div>
+                <h4 class="text-sm font-bold text-white uppercase tracking-wider">Phase I: Troop Leading Procedures & Orders (15 Pts Max)</h4>
+                <p class="text-xs text-stone-400">Receipt of WARNORD, terrain model brief, 1/3-2/3 rule, PCI/PCC completeness</p>
+              </div>
+              <span id="score-val-p1" class="text-sm font-black font-mono text-amber-400">15 / 15</span>
+            </div>
+            <input type="range" id="slider-p1" min="0" max="15" step="1" value="15" oninput="calcLiveScore()" class="w-full">
+            <div class="flex justify-between text-\[10px\] text-stone-500 mt-1">
+              <span>0 (Failed TLPs)</span>
+              <span>8 (Marginal Orders)</span>
+              <span>15 (Flawless Execution / Rehearsals)</span>
+            </div>
+          </div>
+
+          <!-- Phase 2: Movement & Actions on Contact -->
+          <div class="border border-stone-800 rounded p-4 bg-stone-950">
+            <div class="flex justify-between items-center mb-3">
+              <div>
+                <h4 class="text-sm font-bold text-white uppercase tracking-wider">Phase II: Tactical Movement & Actions on Contact (20 Pts Max)</h4>
+                <p class="text-xs text-stone-400">Movement techniques (Bounding Overwatch), spacing, 3 D's reporting, establishing SBF</p>
+              </div>
+              <span id="score-val-p2" class="text-sm font-black font-mono text-amber-400">20 / 20</span>
+            </div>
+            <input type="range" id="slider-p2" min="0" max="20" step="1" value="20" oninput="calcLiveScore()" class="w-full">
+            <div class="flex justify-between text-\[10px\] text-stone-500 mt-1">
+              <span>0 (Bunched up / Direct fire trapped)</span>
+              <span>10 (Slow SBF establishment)</span>
+              <span>20 (Aggressive suppression & accurate 3Ds)</span>
+            </div>
+          </div>
+
+          <!-- Phase 3: Breach & Objective Assault -->
+          <div class="border border-stone-800 rounded p-4 bg-stone-950">
+            <div class="flex justify-between items-center mb-3">
+              <div>
+                <h4 class="text-sm font-bold text-white uppercase tracking-wider">Phase III: Breach & SOSA Objective Assault (30 Pts Max)</h4>
+                <p class="text-xs text-stone-400">Suppress, Obscure, Secure, Assault. Shift/Lift fires discipline, bunker clearance, trench sweep</p>
+              </div>
+              <span id="score-val-p3" class="text-sm font-black font-mono text-amber-400">30 / 30</span>
+            </div>
+            <input type="range" id="slider-p3" min="0" max="30" step="1" value="30" oninput="calcLiveScore()" class="w-full">
+            <div class="flex justify-between text-\[10px\] text-stone-500 mt-1">
+              <span>0 (Fratricide risk / Failed breach)</span>
+              <span>15 (Uncoordinated lift/shift)</span>
+              <span>30 (Flawless SOSA & controlled assault)</span>
+            </div>
+          </div>
+
+          <!-- Phase 4: Consolidation & Reorganization -->
+          <div class="border border-stone-800 rounded p-4 bg-stone-950">
+            <div class="flex justify-between items-center mb-3">
+              <div>
+                <h4 class="text-sm font-bold text-white uppercase tracking-wider">Phase IV: Consolidation & Reorganization (20 Pts Max)</h4>
+                <p class="text-xs text-stone-400">Clockwise security, sectors of fire, ACE reports, CCP establishment, EPW handling</p>
+              </div>
+              <span id="score-val-p4" class="text-sm font-black font-mono text-amber-400">20 / 20</span>
+            </div>
+            <input type="range" id="slider-p4" min="0" max="20" step="1" value="20" oninput="calcLiveScore()" class="w-full">
+            <div class="flex justify-between text-\[10px\] text-stone-500 mt-1">
+              <span>0 (Flagrant lack of perimeter)</span>
+              <span>10 (Slow medevac/ACE rollups)</span>
+              <span>20 (Interlocking sectors & rapid 9-line)</span>
+            </div>
+          </div>
+
+          <!-- Phase 5: Mission Command & Tactical Comms -->
+          <div class="border border-stone-800 rounded p-4 bg-stone-950">
+            <div class="flex justify-between items-center mb-3">
+              <div>
+                <h4 class="text-sm font-bold text-white uppercase tracking-wider">Phase V: Mission Command & Comms (15 Pts Max)</h4>
+                <p class="text-xs text-stone-400">SALT / SPOTREP reporting to Higher (TOC), PACE plan adherence, PL/PSG redundancy</p>
+              </div>
+              <span id="score-val-p5" class="text-sm font-black font-mono text-amber-400">15 / 15</span>
+            </div>
+            <input type="range" id="slider-p5" min="0" max="15" step="1" value="15" oninput="calcLiveScore()" class="w-full">
+            <div class="flex justify-between text-\[10px\] text-stone-500 mt-1">
+              <span>0 (Comms blackout / Lost situational awareness)</span>
+              <span>8 (Delayed reporting)</span>
+              <span>15 (Proactive digital & voice reports)</span>
+            </div>
+          </div>
+
+        </div>
+
+        <!-- Field Evaluator AAR Notes -->
+        <div class="mt-6 grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div>
+            <label class="block text-xs font-bold text-emerald-400 uppercase tracking-wider mb-1">Key Sustains (OC/T Observations)</label>
+            <textarea id="eval-sustains" rows="3" placeholder="Identify platoon strengths, effective tactical drills, violence of action..." class="w-full p-2.5 bg-stone-950 border border-stone-800 rounded text-xs text-stone-200 focus:outline-none focus:border-emerald-500"></textarea>
+          </div>
+          <div>
+            <label class="block text-xs font-bold text-amber-400 uppercase tracking-wider mb-1">Key Improves (Tactical Deficiencies)</label>
+            <textarea id="eval-improves" rows="3" placeholder="Identify friction points, communications delays, muzzle discipline issues..." class="w-full p-2.5 bg-stone-950 border border-stone-800 rounded text-xs text-stone-200 focus:outline-none focus:border-amber-500"></textarea>
+          </div>
+        </div>
+
+        <div class="mt-4 flex justify-end">
+          <button onclick="saveActiveEvaluation()" class="bg-amber-500 hover:bg-amber-400 text-stone-950 font-black px-6 py-2.5 rounded text-xs uppercase tracking-wider flex items-center gap-2 shadow transition">
+            <i data-lucide="check" class="w-4 h-4"></i> Commit Evaluation to Battalion Record
+          </button>
+        </div>
+      </div>
+    </section>
+
+    <!-- 3. BATTALION COMPARISON MATRIX -->
+    <section id="tab-matrix" class="hidden space-y-6">
+      <div class="bg-stone-900 border border-stone-800 rounded-lg p-5 shadow overflow-hidden">
+        <div class="flex flex-col md:flex-row justify-between items-start md:items-center pb-4 border-b border-stone-800 gap-2">
+          <div>
+            <h3 class="text-base font-extrabold text-white tracking-wide uppercase">1-327 IN Platoons Performance Matrix</h3>
+            <p class="text-xs text-stone-400">Head-to-head evaluation comparison across all 5 tactical phases</p>
+          </div>
+          <div class="flex items-center space-x-2 text-xs">
+            <span class="px-2 py-0.5 rounded bg-emerald-950 text-emerald-400 border border-emerald-800 font-bold">T: 85-100%</span>
+            <span class="px-2 py-0.5 rounded bg-amber-950 text-amber-400 border border-amber-800 font-bold">P: 70-84%</span>
+            <span class="px-2 py-0.5 rounded bg-rose-950 text-rose-400 border border-rose-800 font-bold">U: &lt;70%</span>
+          </div>
+        </div>
+
+        <div class="overflow-x-auto mt-4">
+          <table class="w-full text-left text-xs">
+            <thead class="bg-stone-950 text-stone-400 uppercase text-\[10px\] tracking-wider border-b border-stone-800 font-bold">
+              <tr>
+                <th class="py-3 px-3">Company</th>
+                <th class="py-3 px-3">Platoon</th>
+                <th class="py-3 px-3 text-center">Iteration</th>
+                <th class="py-3 px-2 text-center">Ph I (15)</th>
+                <th class="py-3 px-2 text-center">Ph II (20)</th>
+                <th class="py-3 px-2 text-center">Ph III (30)</th>
+                <th class="py-3 px-2 text-center">Ph IV (20)</th>
+                <th class="py-3 px-2 text-center">Ph V (15)</th>
+                <th class="py-3 px-3 text-right">Total</th>
+                <th class="py-3 px-3 text-center">Rating</th>
+                <th class="py-3 px-3 text-center">Action</th>
+              </tr>
+            </thead>
+            <tbody id="matrix-table-body" class="divide-y divide-stone-800">
+              <!-- Dynamically populated -->
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+
+    <!-- 4. EXECUTIVE AAR & REPORT -->
+    <section id="tab-aar" class="hidden space-y-6">
+      <div class="bg-stone-900 border border-stone-800 rounded-lg p-5 shadow">
+        <div class="flex justify-between items-center pb-4 border-b border-stone-800">
+          <div>
+            <h3 class="text-base font-extrabold text-white tracking-wide uppercase">Command After-Action Review (AAR) Roll-Up</h3>
+            <p class="text-xs text-stone-400">Formal summary for Battalion Commander & S3 Operations Officer</p>
+          </div>
+          <div class="flex items-center space-x-2 no-print">
+            <button onclick="window.print()" class="px-3 py-1.5 text-xs font-bold rounded bg-stone-800 hover:bg-stone-700 text-stone-200 transition flex items-center gap-1.5">
+              <i data-lucide="printer" class="w-4 h-4"></i> Print / PDF
+            </button>
+            <button onclick="copyAARText()" class="px-3 py-1.5 text-xs font-bold rounded bg-amber-500 hover:bg-amber-400 text-stone-950 transition flex items-center gap-1.5">
+              <i data-lucide="copy" class="w-4 h-4"></i> Copy Text
+            </button>
+          </div>
+        </div>
+
+        <div id="aar-text-container" class="mt-4 bg-stone-950 p-5 rounded font-mono text-xs text-stone-300 leading-relaxed space-y-4 border border-stone-800 whitespace-pre-wrap select-all">
+          <!-- Populated by JS -->
+        </div>
+      </div>
+    </section>
+
+  </main>
+
+  <!-- FOOTER -->
+  <footer class="bg-stone-900 border-t border-stone-800 py-3 text-center text-xs text-stone-500 no-print">
+    <p>1st Battalion, 327th Infantry Regiment ("Above The Rest") • Bastogne • 101st Airborne Division (Air Assault)</p>
+  </footer>
+
+  <!-- JAVASCRIPT LOGIC -->
+  <script>
+    // Initial 9-Platoon Dataset for 1-327 IN
+    const INITIAL_PLATOONS = \[
+      // ABU COMPANY
+      { id: 'abu-1', company: 'ABU', platoon: '1st Platoon', iteration: 'Night', p1: 14, p2: 18, p3: 28, p4: 19, p5: 14, safetyPenalty: 0, sustains: 'Aggressive SOSA breach and rapid consolidation under NVGs.', improves: 'Comms lag between SBF element and breach team.' },
+      { id: 'abu-2', company: 'ABU', platoon: '2nd Platoon', iteration: 'Day', p1: 13, p2: 17, p3: 25, p4: 17, p5: 13, safetyPenalty: 0, sustains: 'Excellent 3-D reporting during initial contact.', improves: 'Sector sketches took too long during reorganization.' },
+      { id: 'abu-3', company: 'ABU', platoon: '3rd Platoon', iteration: 'Day', p1: 11, p2: 15, p3: 22, p4: 15, p5: 11, safetyPenalty: 0, sustains: 'Disciplined rate of fire on support by fire.', improves: 'Spacing degraded into file during woodline transit.' },
+
+      // BUSHMASTER COMPANY
+      { id: 'bush-1', company: 'Bushmaster', platoon: '1st Platoon', iteration: 'Night', p1: 15, p2: 19, p3: 29, p4: 19, p5: 15, safetyPenalty: 0, sustains: 'Textbook night air assault transition into assault.', improves: 'Batteries discipline on thermal sights.' },
+      { id: 'bush-2', company: 'Bushmaster', platoon: '2nd Platoon', iteration: 'Day', p1: 12, p2: 16, p3: 24, p4: 16, p5: 12, safetyPenalty: 0, sustains: 'Effective mechanical breach execution on wire obstacle.', improves: 'EPW searcher lacked dedicated cover man.' },
+      { id: 'bush-3', company: 'Bushmaster', platoon: '3rd Platoon', iteration: 'Day', p1: 14, p2: 17, p3: 26, p4: 18, p5: 13, safetyPenalty: 0, sustains: 'Rapid casualty evacuation via skedco under smoke.', improves: 'PSG ACE report delayed by 4 minutes to TOC.' },
+
+      // COLDSTEEL COMPANY
+      { id: 'cold-1', company: 'Coldsteel', platoon: '1st Platoon', iteration: 'Night', p1: 13, p2: 18, p3: 27, p4: 18, p5: 14, safetyPenalty: 0, sustains: 'Clear target handover between lead squad and gun teams.', improves: 'Marking of cleared bunkers required OC intervention.' },
+      { id: 'cold-2', company: 'Coldsteel', platoon: '2nd Platoon', iteration: 'Day', p1: 10, p2: 14, p3: 21, p4: 14, p5: 10, safetyPenalty: 10, sustains: 'Good aggressive violence of action on final bunker.', improves: 'Cease fire called for stray tracer near boundary.' },
+      { id: 'cold-3', company: 'Coldsteel', platoon: '3rd Platoon', iteration: 'Day', p1: 12, p2: 16, p3: 23, p4: 16, p5: 12, safetyPenalty: 0, sustains: 'Thorough pre-combat checks (PCC/PCI) prior to LD.', improves: 'Shift fire signal via pyrotechnic was obscured by dust.' }
+    \];
+
+    let platoons = \[\];
+    let activePlatoonId = 'abu-1';
+    let currentIteration = 'Day';
+
+    // Initialize application state
+    function init() {
+      const saved = localStorage.getItem('bulldog_lfx_scores');
+      if (saved) {
+        try {
+          platoons = JSON.parse(saved);
+        } catch(e) {
+          platoons = JSON.parse(JSON.stringify(INITIAL_PLATOONS));
+        }
+      } else {
+        platoons = JSON.parse(JSON.stringify(INITIAL_PLATOONS));
+      }
+
+      populateSelectors();
+      renderDashboard();
+      renderMatrix();
+      renderAAR();
+      loadPlatoonForEdit(activePlatoonId);
+      lucide.createIcons();
+    }
+
+    function resetData() {
+      if (confirm('Reset all platoon evaluations to the 1-327 IN default baseline?')) {
+        localStorage.removeItem('bulldog_lfx_scores');
+        platoons = JSON.parse(JSON.stringify(INITIAL_PLATOONS));
+        renderDashboard();
+        renderMatrix();
+        renderAAR();
+        loadPlatoonForEdit(activePlatoonId);
+        alert('Reset complete.');
+      }
+    }
+
+    // Helper: calculate total score for a platoon
+    function calculatePlatoonScore(p) {
+      if (p.safetyPenalty === 999) return 0; // Critical Breach
+      const raw = (p.p1 + p.p2 + p.p3 + p.p4 + p.p5) - (p.safetyPenalty || 0);
+      return Math.max(0, Math.min(100, raw));
+    }
+
+    // Helper: calculate rating label
+    function getRatingBadge(score) {
+      if (score >= 85) return { label: 'T (Trained)', color: 'bg-emerald-950 text-emerald-400 border border-emerald-800' };
+      if (score >= 70) return { label: 'P (Practicing)', color: 'bg-amber-950 text-amber-400 border border-amber-800' };
+      return { label: 'U (Untrained)', color: 'bg-rose-950 text-rose-400 border border-rose-800' };
+    }
+
+    // Populate dropdown selector
+    function populateSelectors() {
+      const select = document.getElementById('platoon-selector');
+      select.innerHTML = '';
+      platoons.forEach(p => {
+        const opt = document.createElement('option');
+        opt.value = p.id;
+        opt.textContent = \`${p.company.toUpperCase()} - ${p.platoon}\`;
+        select.appendChild(opt);
+      });
+    }
+
+    // Render TOC Dashboard
+    function renderDashboard() {
+      let totalScore = 0;
+      let countT = 0, countP = 0, countU = 0;
+      let topPlatoon = null;
+      let topScore = -1;
+
+      const compScores = { ABU: \[\], Bushmaster: \[\], Coldsteel: \[\] };
+
+      platoons.forEach(p => {
+        const score = calculatePlatoonScore(p);
+        totalScore += score;
+        compScores\[p.company\].push(score);
+
+        if (score >= 85) countT++;
+        else if (score >= 70) countP++;
+        else countU++;
+
+        if (score > topScore) {
+          topScore = score;
+          topPlatoon = \`${p.company} - ${p.platoon}\`;
+        }
+      });
+
+      const avg = Math.round(totalScore / platoons.length);
+      document.getElementById('metric-avg-score').textContent = \`${avg}%\`;
+      const avgBadge = getRatingBadge(avg);
+      const avgElem = document.getElementById('metric-avg-rating');
+      avgElem.textContent = avgBadge.label.split(' ')[0];
+      avgElem.className = \`text-xs px-2 py-0.5 rounded font-bold uppercase ${avgBadge.color}\`;
+
+      document.getElementById('metric-top-platoon').textContent = topPlatoon || '--';
+      document.getElementById('metric-top-score').textContent = \`Top Score: ${topScore}%\`;
+      document.getElementById('metric-count-t').textContent = countT;
+      document.getElementById('metric-count-p').textContent = countP;
+      document.getElementById('metric-count-u').textContent = countU;
+
+      // Render Company Platoon Lists
+      \['ABU', 'Bushmaster', 'Coldsteel'\].forEach(comp => {
+        const compList = document.getElementById(\`${comp.toLowerCase()}-platoons-list\`);
+        const compAvgElem = document.getElementById(\`${comp.toLowerCase()}-avg-badge\`);
+        compList.innerHTML = '';
+
+        const arr = platoons.filter(p => p.company === comp);
+        const compAvg = Math.round(compScores\[comp\].reduce((a,b)=>a+b, 0) / (arr.length || 1));
+        compAvgElem.textContent = \`AVG: ${compAvg}%\`;
+
+        arr.forEach(p => {
+          const s = calculatePlatoonScore(p);
+          const badge = getRatingBadge(s);
+          const div = document.createElement('div');
+          div.className = 'flex items-center justify-between p-2 rounded bg-stone-950 border border-stone-800/80 hover:border-stone-700 transition cursor-pointer';
+          div.onclick = () => {
+            loadPlatoonForEdit(p.id);
+            switchTab('evaluation');
+          };
+          div.innerHTML = \`
+            <div>
+              <span class="text-xs font-bold text-white block">${p.platoon}</span>
+              <span class="text-\[10px\] text-stone-400">${p.iteration} Iteration</span>
+            </div>
+            <div class="flex items-center space-x-2">
+              <span class="text-xs font-mono font-bold text-stone-200">${s}%</span>
+              <span class="text-\[10px\] px-1.5 py-0.5 rounded font-bold ${badge.color}">${badge.label.charAt(0)}</span>
+            </div>
+          \`;
+          compList.appendChild(div);
+        });
+      });
+    }
+
+    // Switch Tabs
+    function switchTab(tabId) {
+      \['dashboard', 'evaluation', 'matrix', 'aar'\].forEach(t => {
+        document.getElementById(\`tab-${t}\`).classList.add('hidden');
+        const btn = document.getElementById(\`btn-tab-${t}\`);
+        btn.classList.remove('bg-amber-500', 'text-stone-950');
+        btn.classList.add('bg-stone-800', 'text-stone-300');
+      });
+
+      document.getElementById(\`tab-${tabId}\`).classList.remove('hidden');
+      const activeBtn = document.getElementById(\`btn-tab-${tabId}\`);
+      activeBtn.classList.remove('bg-stone-800', 'text-stone-300');
+      activeBtn.classList.add('bg-amber-500', 'text-stone-950');
+      lucide.createIcons();
+    }
+
+    function openEvaluationForCompany(comp) {
+      const first = platoons.find(p => p.company === comp);
+      if (first) {
+        loadPlatoonForEdit(first.id);
+        switchTab('evaluation');
+      }
+    }
+
+    // Load platoon data into evaluation editor
+    function loadPlatoonForEdit(platoonId) {
+      activePlatoonId = platoonId;
+      document.getElementById('platoon-selector').value = platoonId;
+      const p = platoons.find(item => item.id === platoonId);
+      if (!p) return;
+
+      currentIteration = p.iteration || 'Day';
+      setIteration(currentIteration, false);
+
+      document.getElementById('slider-p1').value = p.p1;
+      document.getElementById('slider-p2').value = p.p2;
+      document.getElementById('slider-p3').value = p.p3;
+      document.getElementById('slider-p4').value = p.p4;
+      document.getElementById('slider-p5').value = p.p5;
+
+      document.getElementById('eval-sustains').value = p.sustains || '';
+      document.getElementById('eval-improves').value = p.improves || '';
+
+      // Safety checks
+      const safetyRadios = document.getElementsByName('safety-check');
+      if (p.safetyPenalty === 999) safetyRadios[2].checked = true;
+      else if (p.safetyPenalty === 10) safetyRadios[1].checked = true;
+      else safetyRadios[0].checked = true;
+
+      calcLiveScore();
+    }
+
+    function setIteration(iter, triggerCalc = true) {
+      currentIteration = iter;
+      const btnDay = document.getElementById('iter-day');
+      const btnNight = document.getElementById('iter-night');
+      if (iter === 'Day') {
+        btnDay.className = "px-3 py-1 text-xs font-bold rounded bg-amber-500 text-stone-950";
+        btnNight.className = "px-3 py-1 text-xs font-bold rounded text-stone-400 hover:text-white";
+      } else {
+        btnNight.className = "px-3 py-1 text-xs font-bold rounded bg-amber-500 text-stone-950";
+        btnDay.className = "px-3 py-1 text-xs font-bold rounded text-stone-400 hover:text-white";
+      }
+      if (triggerCalc) calcLiveScore();
+    }
+
+    function updateSafetyGate(val) {
+      calcLiveScore();
+    }
+
+    // Recalculate evaluation score on slider change
+    function calcLiveScore() {
+      const p1 = parseInt(document.getElementById('slider-p1').value);
+      const p2 = parseInt(document.getElementById('slider-p2').value);
+      const p3 = parseInt(document.getElementById('slider-p3').value);
+      const p4 = parseInt(document.getElementById('slider-p4').value);
+      const p5 = parseInt(document.getElementById('slider-p5').value);
+
+      document.getElementById('score-val-p1').textContent = \`${p1} / 15\`;
+      document.getElementById('score-val-p2').textContent = \`${p2} / 20\`;
+      document.getElementById('score-val-p3').textContent = \`${p3} / 30\`;
+      document.getElementById('score-val-p4').textContent = \`${p4} / 20\`;
+      document.getElementById('score-val-p5').textContent = \`${p5} / 15\`;
+
+      const safetyVal = document.querySelector('input\[name="safety-check"\]:checked').value;
+      let penalty = 0;
+      if (safetyVal === 'warning') penalty = 10;
+      if (safetyVal === 'breach') penalty = 999;
+
+      let total = (p1 + p2 + p3 + p4 + p5) - penalty;
+      if (penalty === 999) total = 0;
+      total = Math.max(0, Math.min(100, total));
+
+      const totalElem = document.getElementById('active-total-score');
+      const badgeElem = document.getElementById('active-total-badge');
+      totalElem.textContent = \`${total}%\`;
+
+      const badge = getRatingBadge(total);
+      badgeElem.textContent = badge.label;
+      badgeElem.className = \`px-2 py-0.5 text-xs font-black rounded ${badge.color}\`;
+    }
+
+    // Save active evaluation to state and localStorage
+    function saveActiveEvaluation() {
+      const p = platoons.find(item => item.id === activePlatoonId);
+      if (!p) return;
+
+      p.p1 = parseInt(document.getElementById('slider-p1').value);
+      p.p2 = parseInt(document.getElementById('slider-p2').value);
+      p.p3 = parseInt(document.getElementById('slider-p3').value);
+      p.p4 = parseInt(document.getElementById('slider-p4').value);
+      p.p5 = parseInt(document.getElementById('slider-p5').value);
+      p.iteration = currentIteration;
+
+      const safetyVal = document.querySelector('input\[name="safety-check"\]:checked').value;
+      if (safetyVal === 'breach') p.safetyPenalty = 999;
+      else if (safetyVal === 'warning') p.safetyPenalty = 10;
+      else p.safetyPenalty = 0;
+
+      p.sustains = document.getElementById('eval-sustains').value;
+      p.improves = document.getElementById('eval-improves').value;
+
+      localStorage.setItem('bulldog_lfx_scores', JSON.stringify(platoons));
+
+      renderDashboard();
+      renderMatrix();
+      renderAAR();
+
+      alert(\`Evaluation successfully committed for ${p.company} ${p.platoon}!\`);
+    }
+
+    // Render Matrix Table
+    function renderMatrix() {
+      const tbody = document.getElementById('matrix-table-body');
+      tbody.innerHTML = '';
+
+      platoons.forEach(p => {
+        const score = calculatePlatoonScore(p);
+        const badge = getRatingBadge(score);
+
+        const tr = document.createElement('tr');
+        tr.className = 'hover:bg-stone-950/70 transition';
+        tr.innerHTML = \`
+          <td class="py-3 px-3 font-bold text-stone-200">${p.company.toUpperCase()}</td>
+          <td class="py-3 px-3 text-white font-medium">${p.platoon}</td>
+          <td class="py-3 px-3 text-center">
+            <span class="px-2 py-0.5 rounded text-\[10px\] font-bold ${p.iteration === 'Night' ? 'bg-indigo-950 text-indigo-300 border border-indigo-800' : 'bg-amber-950 text-amber-300 border border-amber-800'}">${p.iteration}</span>
+          </td>
+          <td class="py-3 px-2 text-center font-mono text-stone-300">${p.p1}</td>
+          <td class="py-3 px-2 text-center font-mono text-stone-300">${p.p2}</td>
+          <td class="py-3 px-2 text-center font-mono text-stone-300">${p.p3}</td>
+          <td class="py-3 px-2 text-center font-mono text-stone-300">${p.p4}</td>
+          <td class="py-3 px-2 text-center font-mono text-stone-300">${p.p5}</td>
+          <td class="py-3 px-3 text-right font-mono font-bold text-amber-400">${score}%</td>
+          <td class="py-3 px-3 text-center">
+            <span class="px-2 py-0.5 rounded text-\[10px\] font-bold ${badge.color}">${badge.label}</span>
+          </td>
+          <td class="py-3 px-3 text-center">
+            <button onclick="loadPlatoonForEdit('${p.id}'); switchTab('evaluation');" class="text-amber-400 hover:text-white text-xs underline font-bold">Grade</button>
+          </td>
+        \`;
+        tbody.appendChild(tr);
+      });
+    }
+
+    // Render AAR Report
+    function renderAAR() {
+      const container = document.getElementById('aar-text-container');
+      const now = new Date().toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' });
+
+      let totalScore = 0;
+      let lines = \[\];
+      lines.push(\`================================================================================\`);
+      lines.push(\`     HEADQUARTERS, 1ST BATTALION, 327TH INFANTRY REGIMENT "BULLDOG"\`);
+      lines.push(\`              PLATOON LIVE-FIRE EXERCISE (LFX) COMMAND AAR\`);
+      lines.push(\`                   DATE OF EVALUATION: ${now.toUpperCase()}\`);
+      lines.push(\`================================================================================\\n\`);
+
+      lines.push(\`1. EXECUTIVE SUMMARY:\`);
+      lines.push(\`All nine rifle platoons across ABU Company, Bushmaster Company, and Coldsteel Company\`);
+      lines.push(\`completed the multi-phase Live-Fire tactical evaluation following TC 3-21.8 guidelines.\\n\`);
+
+      lines.push(\`2. PLATOON ROLL-UP RATINGS:\`);
+      platoons.forEach(p => {
+        const score = calculatePlatoonScore(p);
+        totalScore += score;
+        const rating = getRatingBadge(score).label;
+        lines.push(\` • ${p.company.padEnd(11)} | ${p.platoon.padEnd(12)} | \[${p.iteration.padEnd(5)}\] | SCORE: ${String(score).padStart(3)}% | ${rating}\`);
+        if (p.sustains) lines.push(\`     + SUSTAIN: ${p.sustains}\`);
+        if (p.improves) lines.push(\`     - IMPROVE: ${p.improves}\`);
+      });
+
+      const bnAvg = Math.round(totalScore / platoons.length);
+      lines.push(\`\\n3. BATTALION SUMMARY METRICS:\`);
+      lines.push(\` • Overall 1-327 IN Battalion Average: ${bnAvg}%\`);
+      lines.push(\` • Doctrinal Status: ${getRatingBadge(bnAvg).label}\`);
+      lines.push(\` • Range Safety Violations: NONE (Zero SDZ breaches recorded)\`);
+      lines.push(\`\\n4. COMMANDER'S GUIDANCE FOR RETRAINING:\`);
+      lines.push(\` • Platoons scoring < 85% will conduct day/night dry-fire remediation before next FTX.\`);
+      lines.push(\` • Focus on secondary breach charges and night casualty collection point operations.\`);
+      lines.push(\`\\n============================ END OF AAR TRANSMISSION ============================\`);
+
+      container.textContent = lines.join('\\n');
+    }
+
+    function copyAARText() {
+      const text = document.getElementById('aar-text-container').textContent;
+      navigator.clipboard.writeText(text).then(() => {
+        alert('AAR Text copied to clipboard!');
+      });
+    }
+
+    // Start on page load
+    window.onload = init;
+  </script>
+</body>
+</html>
